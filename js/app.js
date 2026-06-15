@@ -14,7 +14,11 @@ createApp({
         const ejercicios = ref([]);
         const records = ref({});
         const isOffline = ref(!navigator.onLine);
-        const cargando = ref(true); // <-- NUEVA VARIABLE VISUAL
+        const cargando = ref(true);
+        
+        // Calendario Semanal
+        const diasSemana = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+        const diaSeleccionado = ref('lunes'); // Inicia por defecto el lunes
         
         // Formulario
         const nuevoEj = ref({ nombre: '', tipo: 'fuerza', series: null, reps: null, peso: null, duracionObjetivo: null });
@@ -30,33 +34,62 @@ createApp({
         const ejercicioPrSeleccionado = ref(null);
         const nuevoPrValor = ref(null);
 
-        // Opción 4: Wake Lock API (Bloqueo de suspensión de pantalla)
+        // Wake Lock API
         const wakeLockActivo = ref(false);
         let wakeLockSentinel = null;
 
-        // --- Propiedad Computada: Porcentaje de la Barra de Progreso ---
+        // --- Propiedades Computadas ---
+        
+        // 1. Filtrar ejercicios según el día seleccionado en el calendario
+        const ejerciciosFiltrados = computed(() => {
+            return ejercicios.value.filter(ej => ej.dia === diaSeleccionado.value);
+        });
+
+        // 2. Calcular progreso basándose ÚNICAMENTE en el día activo
         const porcentajeProgreso = computed(() => {
-            if (ejercicios.value.length === 0) return 0;
-            const completados = ejercicios.value.filter(ej => ej.completado).length;
-            return Math.round((completados / ejercicios.value.length) * 100);
+            const totalesDelDia = ejerciciosFiltrados.value.length;
+            if (totalesDelDia === 0) return 0;
+            const completadosDelDia = ejerciciosFiltrados.value.filter(ej => ej.completado).length;
+            return Math.round((completadosDelDia / totalesDelDia) * 100);
         });
 
         // --- Carga Inicial ---
         const cargarDatos = () => {
             ejercicios.value = GymStorage.obtenerEjercicios().map(ej => ({
                 ...ej,
+                dia: ej.dia || 'lunes', // Retrocompatibilidad por si había guardados viejos
                 completado: ej.completado || false,
                 cronometro: ej.cronometro || 0,
                 cronoCorriendo: false,
                 intervaloRef: null
             }));
             records.value = GymStorage.obtenerRecords();
+            
+            // Setear automáticamente el día real de la semana actual
+            const opciones = { weekday: 'long' };
+            const diaActualEs = new Intl.DateTimeFormat('es-ES', opciones).format(new Date()).toLowerCase();
+            if (diasSemana.includes(diaActualEs)) {
+                diaSeleccionado.value = diaActualEs;
+            }
+        };
+
+        // --- Métodos: Calendario ---
+        const cambiarDia = (dia) => {
+            // Apagar cronómetros activos del día anterior si el usuario cambia de pestaña a mitad de ejercicio
+            ejerciciosFiltrados.value.forEach(ej => {
+                if (ej.cronoCorriendo) {
+                    clearInterval(ej.intervaloRef);
+                    ej.cronoCorriendo = false;
+                }
+            });
+            diaSeleccionado.value = dia;
         };
 
         // --- Métodos: Ejercicios ---
         const agregarEjercicio = () => {
             const nuevo = {
                 id: Date.now(),
+                dia: diaSeleccionado.value,
                 nombre: nuevoEj.value.nombre,
                 tipo: nuevoEj.value.tipo,
                 completado: false,
@@ -83,7 +116,6 @@ createApp({
             GymStorage.guardarEjercicios(ejercicios.value);
         };
 
-        // Opción 5: Sistema Check Completo + Confeti + Feedback de Voz
         const completarEjercicio = (ej) => {
             GymStorage.guardarEjercicios(ejercicios.value);
             
@@ -93,7 +125,6 @@ createApp({
                     ej.cronoCorriendo = false;
                 }
 
-                // Vibración corto de 100 milisegundos
                 if ('vibrate' in navigator) {
                     navigator.vibrate(100);
                 }
@@ -115,7 +146,7 @@ createApp({
             }
         };
 
-        // --- Métodos: Cronómetros de Ejercicios por Tiempo ---
+        // --- Métodos: Cronómetros ---
         const controlarCronometro = (ej) => {
             if (ej.cronoCorriendo) {
                 clearInterval(ej.intervaloRef);
@@ -137,7 +168,7 @@ createApp({
             ej.cronoCorriendo = false;
         };
 
-        // --- Métodos: Gestión de Récords Personales (PR) ---
+        // --- Métodos: PR ---
         const abrirModificarPR = (ej) => {
             ejercicioPrSeleccionado.value = ejercicioPrSeleccionado.value === ej.id ? null : ej.id;
             nuevoPrValor.value = records.value[ej.nombre.toLowerCase()] || ej.peso;
@@ -146,15 +177,13 @@ createApp({
         const guardarNuevoPR = (ej) => {
             if (!nuevoPrValor.value) return;
             const nombreNormalizado = ej.nombre.toLowerCase();
-            
             records.value[nombreNormalizado] = nuevoPrValor.value;
             GymStorage.guardarRecords(records.value);
-            
             GymAPI.hablar(`Felicidades, registraste un nuevo récord personal de ${nuevoPrValor.value} kilos en ${ej.nombre}.`);
             ejercicioPrSeleccionado.value = null;
         };
 
-        // --- Métodos: Temporizador de Descanso Inteligente (MM:SS) ---
+        // --- Métodos: Temporizador de Descanso ---
         const iniciarDescansoReloj = () => {
             const minutesEnSegundos = (descansoMinutos.value || 0) * 60;
             const segundosPuros = descansoSegundos.value || 0;
@@ -166,7 +195,6 @@ createApp({
             }
 
             if (intervaloDescanso) clearInterval(intervaloDescanso);
-            
             tiempoDescanso.value = totalSegundos;
             timerCorriendo.value = true;
 
@@ -175,12 +203,7 @@ createApp({
                 if (tiempoDescanso.value <= 0) {
                     clearInterval(intervaloDescanso);
                     timerCorriendo.value = false;
-                    
-                    //Patrón de vibración: vibra 500ms, pausa 250ms, vibra 500ms
-                    if ('vibrate' in navigator) {
-                        navigator.vibrate([500, 250, 500]);
-                    }
-                    
+                    if ('vibrate' in navigator) navigator.vibrate(500);
                     GymAPI.hablar("¡Tiempo de descanso agotado!... Volvé a entrenar.");
                 }
             }, 1000);
@@ -194,22 +217,21 @@ createApp({
 
         const formatearTiempo = (segundos) => {
             const mins = Math.floor(segundos / 60);
-            const secs = Ext = segundos % 60;
+            const secs = segundos % 60;
             return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
         };
 
-        // --- Opción 4: Lógica de Wake Lock API ---
+        // --- Wake Lock API ---
         const alternarWakeLock = async () => {
             if (!('wakeLock' in navigator)) {
                 GymAPI.hablar("Tu navegador no soporta el bloqueo de suspensión de pantalla.");
                 return;
             }
-
             try {
                 if (!wakeLockActivo.value) {
                     wakeLockSentinel = await navigator.wakeLock.request('screen');
                     wakeLockActivo.value = true;
-                    GymAPI.hablar("Modo entrenamiento encendido. Pantalla bloqueada.");
+                    GymAPI.hablar("Modo entrenamiento encendido.");
                     wakeLockSentinel.addEventListener('release', () => { wakeLockActivo.value = false; });
                 } else {
                     await wakeLockSentinel.release();
@@ -222,7 +244,7 @@ createApp({
             }
         };
 
-        // --- Opción 6: Exportar / Importar Archivo JSON ---
+        // --- Exportar / Importar ---
         const exportarRutina = () => {
             const dataBackup = {
                 ejercicios: ejercicios.value.map(e => ({ ...e, cronoCorriendo: false, intervaloRef: null })),
@@ -233,10 +255,10 @@ createApp({
             const url = URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             anchor.href = url;
-            anchor.download = `fittrack-rutina-${Date.now()}.json`;
+            anchor.download = `fittrack-agenda-semanal.json`;
             anchor.click();
             URL.revokeObjectURL(url);
-            GymAPI.hablar("Rutina exportada con éxito.");
+            GymAPI.hablar("Agenda semanal exportada con éxito.");
         };
 
         const importarRutina = (event) => {
@@ -251,13 +273,11 @@ createApp({
                         records.value = datosImportados.records;
                         GymStorage.guardarEjercicios(ejercicios.value);
                         GymStorage.guardarRecords(records.value);
-                        GymAPI.hablar("Copia de seguridad importada correctamente.");
+                        GymAPI.hablar("Agenda importada correctamente.");
                         window.location.reload();
-                    } else {
-                        alert("El archivo no tiene el formato correcto.");
                     }
                 } catch (error) {
-                    alert("Error al procesar el archivo JSON.");
+                    alert("Error al procesar el archivo.");
                 }
             };
             lector.readAsText(archivo);
@@ -268,7 +288,7 @@ createApp({
         };
 
         const leerRutinaCompleta = () => {
-            GymAPI.dictarRutinaCompleta(ejercicios.value);
+            GymAPI.dictarRutinaCompleta(ejerciciosFiltrados.value); // Dicta solo el día actual
         };
 
         // --- Ciclo de Vida ---
@@ -276,18 +296,15 @@ createApp({
             cargarDatos();
             window.addEventListener('online', () => isOffline.value = false);
             window.addEventListener('offline', () => isOffline.value = true);
-            
-            // Efecto estético: El Skeleton Loader se muestra por 800ms para dar la sensación de carga fluida
-            setTimeout(() => {
-                cargando.value = false;
-            }, 800);
+            setTimeout(() => { cargando.value = false; }, 600);
         });
 
         return {
             ejercicios, records, isOffline, nuevoEj, tiempoDescanso, 
             descansoMinutos, descansoSegundos, timerCorriendo, 
-            ejercicioPrSeleccionado, nuevoPrValor, wakeLockActivo, cargando, porcentajeProgreso, // <-- Retornamos las nuevas variables
-            agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
+            ejercicioPrSeleccionado, nuevoPrValor, wakeLockActivo, cargando, 
+            diasSemana, diaSeleccionado, ejerciciosFiltrados, porcentajeProgreso, // <-- Retornamos calendario
+            cambiarDia, agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
             abrirModificarPR, guardarNuevoPR, iniciarDescansoReloj, cancelarDescanso, 
             formatearTiempo, alternarWakeLock, exportarRutina, importarRutina, leerEjercicio, leerRutinaCompleta
         };

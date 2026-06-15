@@ -266,6 +266,22 @@ body {
     }
 }
 
+/* Ocultar barra de scroll horrible en el selector de días móvil */
+.scrollbar-custom::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-custom {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Espaciado de los botones del calendario */
+.overflow-x-auto {
+    display: flex;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
+
 /* Quitar las flechitas por defecto que traen los inputs numéricos en Chrome/Safari/Firefox */
 .bg-card-timer input[type=number]::-webkit-inner-spin-button, 
 .bg-card-timer input[type=number]::-webkit-outer-spin-button { 

@@ -28,7 +28,7 @@ self.addEventListener('install', (event) => {
                 console.log('SW: Guardando archivos estáticos en el precaché');
                 return cache.addAll(RECURSOS_PRECACHE);
             })
-            .then(() => self.skipWaiting()) // Fuerza al SW a activarse inmediatamente
+            .then(() => self.skipWaiting())
     );
 });
 
@@ -50,7 +50,7 @@ self.addEventListener('activate', (event) => {
 
 // 3. Interceptación de solicitudes para servir desde caché o red
 self.addEventListener('fetch', (event) => {
-    // Solo interceptamos peticiones HTTP/HTTPS estándar (evita errores con extensiones de Chrome)
+    // Solo intercepta peticiones HTTP/HTTPS estándar (evita errores con extensiones de Chrome)
     if (!event.request.url.startsWith(self.location.origin) && !event.request.url.startsWith('http')) {
         return;
     }
@@ -58,15 +58,15 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
         caches.match(event.request)
             .then((cachedResponse) => {
-                // Si el recurso ya está en el caché, lo devolvemos inmediatamente (Cache First)
+                // Si el recurso ya está en el caché, lo devuelve inmediatamente (Cache First)
                 if (cachedResponse) {
                     return cachedResponse;
                 }
 
-                // Si no está en el caché, intentamos ir a buscarlo a la red de internet
+                // Si no está en el caché, intentam ir a buscarlo a la red de internet
                 return fetch(event.request).catch(() => {
                     // Si falla la red (usuario offline) y se solicita una navegación (página HTML),
-                    // le mostramos la página de error personalizada offline
+                    // le muestra a la página de error personalizada offline
                     if (event.request.mode === 'navigate') {
                         return caches.match('./offline.html');
                     }
