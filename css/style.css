@@ -1,0 +1,278 @@
+/* ==========================================
+    PALETA DE COLORES E INSPIRACIÓN PREMIUM DARK
+   ========================================== */
+:root {
+    --bg-dark-principal: #0a0a0a;
+    --bg-dark-tarjeta: #161616;     
+    --brand-fire: #e63920;          
+    --brand-fire-hover: #cc2e16;   
+    --text-muted: #a0a0a0;          
+    --border-color: #262626
+}
+
+/* Base del cuerpo con look nativo */
+body {
+    background-color: var(--bg-dark-principal) !important;
+    color: #ffffff !important;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Contenedor Mobile-First [cite: 100] */
+.md-max-width {
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background-color: var(--bg-dark-principal);
+}
+
+/* Modificaciones estéticas de Bootstrap para encajar con el diseño */
+.bg-light {
+    background-color: var(--bg-dark-principal) !important;
+}
+
+/* Tarjetas (Cards) estilo Neumorfismo Oscuro / Cristal */
+.card {
+    background-color: var(--bg-dark-tarjeta) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 16px !important;
+    color: #ffffff !important;
+}
+
+/* Animación de entrada para los nuevos ejercicios registrados */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card.shadow-sm {
+    animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Inputs y Formularios de Bootstrap Tuneados */
+.form-control {
+    background-color: #1f1f1f !important;
+    border: 1px solid var(--border-color) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--brand-fire) !important;
+    box-shadow: 0 0 0 2px rgba(230, 57, 32, 0.2) !important;
+}
+
+.form-control::placeholder {
+    color: #5c5c5c !important;
+}
+
+/* Botón Principal - El Rojo Intenso de la Imagen */
+.btn-primary {
+    background-color: var(--brand-fire) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary:hover, .btn-primary:active {
+    background-color: var(--brand-fire-hover) !important;
+    transform: scale(0.98);
+}
+
+/* Botones Secundarios e Iconos de Acción */
+.btn-outline-primary {
+    color: var(--brand-fire) !important;
+    border-color: var(--brand-fire) !important;
+    border-radius: 8px !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--brand-fire) !important;
+    color: #ffffff !important;
+}
+
+.btn-light {
+    background-color: #262626 !important;
+    border: none !important;
+    color: #ffffff !important;
+}
+
+.btn-light:hover {
+    background-color: #333333 !important;
+}
+
+/* Badges (Etiquetas de Series, Repeticiones y Peso) */
+.badge.bg-secondary {
+    background-color: #2a2a2a !important;
+    color: #ffffff !important;
+}
+
+.badge.bg-info {
+    background-color: rgba(230, 57, 32, 0.1) !important;
+    color: var(--brand-fire) !important;
+    border: 1px solid rgba(230, 57, 32, 0.2);
+}
+
+/* Alertas Offline y Textos Auxiliares */
+.alert-warning {
+    background-color: #1a1510 !important;
+    border: 1px solid #ff9800 !important;
+    color: #ffb74d !important;
+    border-radius: 12px !important;
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-primary {
+    color: var(--brand-fire) !important;
+}
+
+/* Bloque del Temporizador de Descanso */
+.bg-card-timer {
+    background: linear-gradient(135deg, #1f1210 0%, #161616 100%) !important;
+    border: 1px solid rgba(230, 57, 32, 0.3) !important;
+}
+
+/* Transparencias elegantes para los paneles internos */
+.bg-black-opacity {
+    background-color: rgba(0, 0, 0, 0.4);
+    border: 1px solid #262626;
+}
+
+/* Estilo compacto para cronómetros */
+.btn-xs {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+}
+
+/* Contenedor estético para los selectores de tiempo */
+.bg-dark-input {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid #262626;
+    border-radius: 12px;
+}
+
+/* Opción 5: Estilos de Tarjeta Completada */
+.card-completada {
+    opacity: 0.4 !important;
+    background-color: #0d0d0d !important;
+    border-color: #1a1a1a !important;
+    transform: scale(0.98);
+}
+
+/* Checkbox circular customizado estilo gimnasio */
+.custom-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.custom-checkbox:checked {
+    background-color: var(--brand-fire);
+    border-color: var(--brand-fire);
+}
+
+.custom-checkbox:checked::before {
+    content: '\2713'; /* Símbolo de Check */
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* Animación de pulsación suave para el modo activo */
+.animate-pulse {
+    animation: pulseGlow 2s infinite;
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(230, 57, 32, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(230, 57, 32, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(230, 57, 32, 0); }
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Transición suave para el llenado de la barra de progreso */
+.progress-bar {
+    transition: width 0.4s ease-in-out !important;
+}
+
+/* Tarjeta contenedora del esqueleto */
+.bg-card-skeleton {
+    background-color: #161616 !important;
+    border: 1px solid #262626 !important;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.bg-progress-bar {
+    background-color: var(--brand-fire) !important;
+}
+
+/* Elementos grises base */
+.skeleton-circle, .skeleton-line {
+    background: linear-gradient(90deg, #222222 25%, #2e2e2e 50%, #222222 75%);
+    background-size: 200% 100%;
+    animation: shimmerEffect 1.5s infinite linear;
+}
+
+/* Círculo para simular la posición del checkbox */
+.skeleton-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Líneas que simulan los textos de los ejercicios */
+.skeleton-line {
+    height: 12px;
+    border-radius: 4px;
+}
+
+/* Animación de barrido brillante (Shimmer) */
+@keyframes shimmerEffect {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* Quitar las flechitas por defecto que traen los inputs numéricos en Chrome/Safari/Firefox */
+.bg-card-timer input[type=number]::-webkit-inner-spin-button, 
+.bg-card-timer input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+.bg-card-timer input[type=number] {
+  -moz-appearance: textfield;
+  outline: none;
+}

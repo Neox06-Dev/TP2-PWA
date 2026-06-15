@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack PWA - Elite Training</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icons/favicon-192x192.png">
+    <link rel="shortcut icon" type="image/png" href="icons/favicon-192x192.png">
+</head>
+<body class="bg-dark">
+
+    <div id="app" class="container md-max-width py-3">
+        
+        <div v-if="isOffline" class="alert alert-warning text-center py-2 mb-3 shadow-sm" role="alert">
+            <i class="bi bi-wifi-off me-2"></i> <strong>Modo Offline activo.</strong> Cambios guardados localmente.
+        </div>
+
+        <header class="d-flex justify-content-between align-items-center mb-2 bg-transparent py-3 border-bottom border-secondary">
+            <div>
+                <h1 class="h4 mb-0 fw-bold text-white"><i class="bi bi-lightning-charge-fill text-primary"></i> FitTrack</h1>
+                <small class="text-muted">Elite Training Log</small>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" @click="leerRutinaCompleta" :disabled="ejercicios.length === 0">
+                <i class="bi bi-volume-up-fill"></i> Escuchar Rutina
+            </button>
+        </header>
+
+        <section class="d-flex justify-content-between align-items-center mb-3 p-2 bg-black-opacity rounded">
+            <button class="btn btn-sm fw-bold transition-all" 
+                    :class="wakeLockActivo ? 'btn-danger animate-pulse' : 'btn-outline-light'"
+                    @click="alternarWakeLock">
+                <i class="bi" :class="wakeLockActivo ? 'bi-eye-fill' : 'bi-eye-slash-fill'"></i>
+                {{ wakeLockActivo ? ' Pantalla Siempre Activa' : ' Modo Entrenamiento' }}
+            </button>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-dark btn-sm border-secondary text-muted" @click="exportarRutina" title="Exportar Copia JSON">
+                    <i class="bi bi-download"></i> Exportar
+                </button>
+                <button class="btn btn-dark btn-sm border-secondary text-muted" @click="$refs.fileInput.click()" title="Importar Copia JSON">
+                    <i class="bi bi-upload"></i> Importar
+                </button>
+                <input type="file" ref="fileInput" class="d-none" accept=".json" @change="importarRutina">
+            </div>
+        </section>
+
+        <section class="card shadow-sm mb-4 p-3 text-center bg-card-timer">
+            <h2 class="h6 text-uppercase fw-bold text-muted mb-2">
+                <i class="bi bi-stopwatch-fill text-primary"></i> Descanso Personalizado
+            </h2>
+            
+            <div v-if="timerCorriendo" class="display-5 fw-bold text-white mb-3">
+                {{ formatearTiempo(tiempoDescanso) }}
+            </div>
+            
+            <div v-else class="d-flex justify-content-center align-items-center mb-3">
+                <div class="d-flex align-items-center bg-dark-input rounded px-3 py-1">
+                    <div class="text-center">
+                        <span class="d-block text-uppercase text-muted" style="font-size: 0.65rem;">Min</span>
+                        <input type="number" class="form-control text-center fw-bold fs-3 bg-transparent text-white border-0 p-0" v-model.number="descansoMinutos" min="0" max="10" style="width: 50px;">
+                    </div>
+                    <span class="fs-3 fw-bold text-primary mx-2">:</span>
+                    <div class="text-center">
+                        <span class="d-block text-uppercase text-muted" style="font-size: 0.65rem;">Seg</span>
+                        <input type="number" class="form-control text-center fw-bold fs-3 bg-transparent text-white border-0 p-0" v-model.number="descansoSegundos" min="0" max="59" style="width: 50px;">
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <button v-if="!timerCorriendo" class="btn btn-primary btn-sm px-4 fw-bold" @click="iniciarDescansoReloj">
+                    <i class="bi bi-play-fill"></i> Iniciar Descanso
+                </button>
+                <button v-else class="btn btn-danger btn-sm px-4 fw-bold" @click="cancelarDescanso">
+                    <i class="bi bi-stop-fill"></i> Detener
+                </button>
+            </div>
+        </section>
+
+        <main>
+            <section class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h2 class="h6 card-title fw-bold text-uppercase text-muted mb-3">Registrar Ejercicio</h2>
+                    <form @submit.prevent="agregarEjercicio">
+                        <div class="mb-3">
+                            <input type="text" class="form-control" v-model="nuevoEj.nombre" placeholder="Ej: Press de Banca, Plancha..." required>
+                        </div>
+
+                        <div class="mb-3 d-flex gap-3 justify-content-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" v-model="nuevoEj.tipo" value="fuerza" id="tipoFuerza">
+                                <label class="form-check-label text-white" for="tipoFuerza">Fuerza (Reps)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" v-model="nuevoEj.tipo" value="tiempo" id="tipoTiempo">
+                                <label class="form-check-label text-white" for="tipoTiempo">Tiempo (Isométrico)</label>
+                            </div>
+                        </div>
+
+                        <div v-if="nuevoEj.tipo === 'fuerza'" class="row g-2 mb-3">
+                            <div class="col-4">
+                                <input type="number" class="form-control" v-model.number="nuevoEj.series" placeholder="Series" min="1" :required="nuevoEj.tipo === 'fuerza'">
+                            </div>
+                            <div class="col-4">
+                                <input type="number" class="form-control" v-model.number="nuevoEj.reps" placeholder="Reps" min="1" :required="nuevoEj.tipo === 'fuerza'">
+                            </div>
+                            <div class="col-4">
+                                <input type="number" class="form-control" v-model.number="nuevoEj.peso" placeholder="Peso (kg)" min="0" :required="nuevoEj.tipo === 'fuerza'">
+                            </div>
+                        </div>
+
+                        <div v-if="nuevoEj.tipo === 'tiempo'" class="mb-3">
+                            <input type="number" class="form-control" v-model.number="nuevoEj.duracionObjetivo" placeholder="Duración sugerida (segundos)" min="1" :required="nuevoEj.tipo === 'tiempo'">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">
+                            <i class="bi bi-plus-lg"></i> Agregar a la Rutina
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h2 class="h6 fw-bold text-uppercase text-muted mb-0">
+                        Ejercicios de Hoy ({{ ejercicios.length }})
+                    </h2>
+                    <span v-if="ejercicios.length > 0" class="badge bg-dark border border-secondary text-primary fw-bold">
+                        {{ porcentajeProgreso }}% COMPLETADO
+                    </span>
+                </div>
+
+                <div v-if="ejercicios.length > 0" class="progress mb-4 bg-black-opacity" style="height: 6px; border-radius: 10px;">
+                    <div class="progress-bar bg-progress-bar transition-all" 
+                         role="progressbar" 
+                         :style="{ width: porcentajeProgreso + '%' }" 
+                         :aria-valuenow="porcentajeProgreso" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                
+                <div v-if="cargando">
+                    <div class="card shadow-sm mb-3 border-0 bg-card-skeleton" v-for="n in 2" :key="n">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="skeleton-circle"></div>
+                            <div class="flex-grow-1">
+                                <div class="skeleton-line w-75 mb-2"></div>
+                                <div class="skeleton-line w-50"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div v-else>
+                    <div v-if="ejercicios.length === 0" class="text-center text-muted my-5">
+                        <i class="bi bi-clipboard-x display-1 text-secondary mb-3"></i>
+                        <p>No hay ejercicios registrados hoy.<br>¡Empezá tu sesión!</p>
+                    </div>
+
+                    <div v-else class="card shadow-sm mb-3 transition-all" 
+                         :class="{'card-completada': ej.completado}" 
+                         v-for="(ej, index) in ejercicios" :key="ej.id">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                
+                                <div class="d-flex align-items-start gap-3 flex-grow-1">
+                                    <div class="form-check-check">
+                                        <input type="checkbox" class="custom-checkbox" 
+                                               v-model="ej.completado" 
+                                               @change="completarEjercicio(ej)">
+                                    </div>
+                                    
+                                    <div class="flex-grow-1">
+                                        <h3 class="h6 mb-2 fw-bold" :class="ej.completado ? 'text-decoration-line-through text-muted' : 'text-white'">
+                                            {{ ej.nombre }}
+                                        </h3>
+                                        
+                                        <div v-if="ej.tipo === 'fuerza'">
+                                            <span class="badge bg-secondary me-1">{{ ej.series }} x {{ ej.reps }}</span>
+                                            <span class="badge bg-info text-dark"><i class="bi bi-cone-striped"></i> {{ ej.peso }} kg</span>
+                                            <div class="mt-2 text-muted small">
+                                                <i class="bi bi-trophy text-warning"></i> Récord Personal: {{ records[ej.nombre.toLowerCase()] || 0 }} kg
+                                            </div>
+                                        </div>
+
+                                        <div v-else>
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass-split"></i> Obj: {{ ej.duracionObjetivo }}s</span>
+                                            <div class="mt-2 d-flex align-items-center gap-2">
+                                                <span class="fw-bold fs-5 text-primary">{{ formatearTiempo(ej.cronometro || 0) }}</span>
+                                                <button class="btn btn-dark btn-xs text-white py-0 px-2 border" :disabled="ej.completado" @click="controlarCronometro(ej)">
+                                                    <i class="bi" :class="ej.cronoCorriendo ? 'bi-pause-fill' : 'bi-play-fill'"></i>
+                                                </button>
+                                                <button class="btn btn-dark btn-xs text-muted py-0 px-2 border" :disabled="ej.completado" @click="reiniciarCronometro(ej)">
+                                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-1">
+                                    <button v-if="ej.tipo === 'fuerza'" class="btn btn-light btn-sm text-warning" :disabled="ej.completado" @click="abrirModificarPR(ej)">
+                                        <i class="bi bi-trophy-fill"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm text-primary" @click="leerEjercicio(ej)">
+                                        <i class="bi bi-volume-up"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm text-danger" @click="eliminarEjercicio(ej.id)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div v-if="ej.id === ejercicioPrSeleccionado" class="mt-3 p-2 border-top border-secondary bg-black-opacity rounded">
+                                <label class="form-label small text-muted">¿Superaste tu marca? Registrá tu nuevo PR (kg):</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number" class="form-control form-control-sm" v-model.number="nuevoPrValor" placeholder="Ej: 80">
+                                    <button class="btn btn-primary btn-sm" @click="guardarNuevoPR(ej)">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
