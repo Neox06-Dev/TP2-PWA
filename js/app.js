@@ -303,7 +303,7 @@ createApp({
             ejercicios, records, isOffline, nuevoEj, tiempoDescanso, 
             descansoMinutos, descansoSegundos, timerCorriendo, 
             ejercicioPrSeleccionado, nuevoPrValor, wakeLockActivo, cargando, 
-            diasSemana, diaSeleccionado, ejerciciosFiltrados, porcentajeProgreso, // <-- Retornamos calendario
+            diasSemana, diaSeleccionado, ejerciciosFiltrados, porcentajeProgreso,
             cambiarDia, agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
             abrirModificarPR, guardarNuevoPR, iniciarDescansoReloj, cancelarDescanso, 
             formatearTiempo, alternarWakeLock, exportarRutina, importarRutina, leerEjercicio, leerRutinaCompleta
