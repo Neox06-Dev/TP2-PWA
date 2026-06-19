@@ -18,7 +18,7 @@ createApp({
         
         // Calendario Semanal
         const diasSemana = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
-        const diaSeleccionado = ref('lunes'); // Inicia por defecto el lunes
+        const diaSeleccionado = ref('lunes'); 
         
         // Formulario
         const nuevoEj = ref({ nombre: '', tipo: 'fuerza', series: null, reps: null, peso: null, duracionObjetivo: null });
@@ -38,14 +38,15 @@ createApp({
         const wakeLockActivo = ref(false);
         let wakeLockSentinel = null;
 
+        // 🌟 Estado para la Instalación PWA
+        const deferredPrompt = ref(null);
+        const mostrarBotonInstalar = ref(false);
+
         // --- Propiedades Computadas ---
-        
-        // 1. Filtrar ejercicios según el día seleccionado en el calendario
         const ejerciciosFiltrados = computed(() => {
             return ejercicios.value.filter(ej => ej.dia === diaSeleccionado.value);
         });
 
-        // 2. Calcular progreso basándose ÚNICAMENTE en el día activo
         const porcentajeProgreso = computed(() => {
             const totalesDelDia = ejerciciosFiltrados.value.length;
             if (totalesDelDia === 0) return 0;
@@ -57,7 +58,7 @@ createApp({
         const cargarDatos = () => {
             ejercicios.value = GymStorage.obtenerEjercicios().map(ej => ({
                 ...ej,
-                dia: ej.dia || 'lunes', // Retrocompatibilidad por si había guardados viejos
+                dia: ej.dia || 'lunes', 
                 completado: ej.completado || false,
                 cronometro: ej.cronometro || 0,
                 cronoCorriendo: false,
@@ -65,7 +66,6 @@ createApp({
             }));
             records.value = GymStorage.obtenerRecords();
             
-            // Setear automáticamente el día real de la semana actual
             const opciones = { weekday: 'long' };
             const diaActualEs = new Intl.DateTimeFormat('es-ES', opciones).format(new Date()).toLowerCase();
             if (diasSemana.includes(diaActualEs)) {
@@ -75,7 +75,6 @@ createApp({
 
         // --- Métodos: Calendario ---
         const cambiarDia = (dia) => {
-            // Apagar cronómetros activos del día anterior si el usuario cambia de pestaña a mitad de ejercicio
             ejerciciosFiltrados.value.forEach(ej => {
                 if (ej.cronoCorriendo) {
                     clearInterval(ej.intervaloRef);
@@ -89,7 +88,7 @@ createApp({
         const agregarEjercicio = () => {
             const nuevo = {
                 id: Date.now(),
-                dia: diaSeleccionado.value,
+                dia: diaSeleccionado.value, 
                 nombre: nuevoEj.value.nombre,
                 tipo: nuevoEj.value.tipo,
                 completado: false,
@@ -288,7 +287,18 @@ createApp({
         };
 
         const leerRutinaCompleta = () => {
-            GymAPI.dictarRutinaCompleta(ejerciciosFiltrados.value); // Dicta solo el día actual
+            GymAPI.dictarRutinaCompleta(ejerciciosFiltrados.value); 
+        };
+
+        // Métodos de Instalación PWA
+        const instalarApp = async () => {
+            if (!deferredPrompt.value) return;
+            deferredPrompt.value.prompt(); 
+            const { outcome } = await deferredPrompt.value.userChoice;
+            if (outcome === 'accepted') {
+                mostrarBotonInstalar.value = false; 
+            }
+            deferredPrompt.value = null;
         };
 
         // --- Ciclo de Vida ---
@@ -296,6 +306,21 @@ createApp({
             cargarDatos();
             window.addEventListener('online', () => isOffline.value = false);
             window.addEventListener('offline', () => isOffline.value = true);
+            
+            // Escuchar el evento nativo del sistema operativo/navegador
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault(); 
+                deferredPrompt.value = e; 
+                mostrarBotonInstalar.value = true; 
+            });
+
+            // Si la app ya está instalada, el boton no aparece
+            window.addEventListener('appinstalled', () => {
+                mostrarBotonInstalar.value = false;
+                deferredPrompt.value = null;
+                console.log('FitTrack instalada de forma nativa.');
+            });
+
             setTimeout(() => { cargando.value = false; }, 600);
         });
 
@@ -304,9 +329,11 @@ createApp({
             descansoMinutos, descansoSegundos, timerCorriendo, 
             ejercicioPrSeleccionado, nuevoPrValor, wakeLockActivo, cargando, 
             diasSemana, diaSeleccionado, ejerciciosFiltrados, porcentajeProgreso,
+            mostrarBotonInstalar, 
             cambiarDia, agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
             abrirModificarPR, guardarNuevoPR, iniciarDescansoReloj, cancelarDescanso, 
-            formatearTiempo, alternarWakeLock, exportarRutina, importarRutina, leerEjercicio, leerRutinaCompleta
+            formatearTiempo, alternarWakeLock, exportarRutina, importarRutina, leerEjercicio, leerRutinaCompleta,
+            instalarApp 
         };
     }
 }).mount('#app');
