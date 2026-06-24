@@ -46,9 +46,9 @@ La solución se construyó utilizando tecnologías web nativas para maximizar la
 │   ├── api.js          # Orquestador de hardware (Web Speech, Vibration, WakeLock)
 │   └── sync.js         # Base de datos IndexedDB y puente fetch asíncrono
 ├── img/
-│   ├── tu-foto-entrenamiento-1.png
-│   ├── tu-foto-entrenamiento-2.png
-│   └── tu-foto-entrenamiento-3.png
+│   ├── foto1.jpg
+│   ├── foto2.jpg
+│   └── foto3.jpg
 ├── icons/
 │   ├── favicon-192x192.png
 │   └── favicon-512x512.png
