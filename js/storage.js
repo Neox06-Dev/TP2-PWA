@@ -4,6 +4,15 @@ const GymStorage = {
         RECORDS: 'fittrack_records'
     },
 
+    // --- Pantalla de Bienvenida ---
+    verificarBienvenida() {
+        return localStorage.getItem('fittrack_bienvenida') === 'true';
+    },
+
+    marcarBienvenidaComoVista() {
+        localStorage.setItem('fittrack_bienvenida', 'true');
+    },
+
     // --- Manejo de Ejercicios ---
     obtenerEjercicios() {
         const datos = localStorage.getItem(this.KEYS.EJERCICIOS);
@@ -22,5 +31,5 @@ const GymStorage = {
 
     guardarRecords(records) {
         localStorage.setItem(this.KEYS.RECORDS, JSON.stringify(records));
-    }
+    },
 };

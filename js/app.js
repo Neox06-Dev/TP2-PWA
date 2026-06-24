@@ -10,6 +10,15 @@ const { createApp, ref, onMounted, computed } = Vue;
 
 createApp({
     setup() {
+        // --- Bienvenida ---
+        const mostrarBienvenida = ref(!GymStorage.verificarBienvenida());
+
+        const finalizarBienvenida = () => {
+            GymStorage.marcarBienvenidaComoVista();
+            mostrarBienvenida.value = false;
+            GymAPI.hablar("¡Bienvenido a Fit Track! Configura tu rutina para empezar.");
+        };
+
         // --- Estado Reactivo ---
         const ejercicios = ref([]);
         const records = ref({});
@@ -328,12 +337,12 @@ createApp({
         });
 
         return {
-            ejercicios, records, isOffline, nuevoEj, tiempoDescanso, 
+            mostrarBienvenida, ejercicios, records, isOffline, nuevoEj, tiempoDescanso, 
             descansoMinutos, descansoSegundos, timerCorriendo, 
             ejercicioPrSeleccionado, nuevoPrValor, wakeLockActivo, cargando, 
             diasSemana, diaSeleccionado, ejerciciosFiltrados, porcentajeProgreso,
             mostrarBotonInstalar, 
-            cambiarDia, agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
+            finalizarBienvenida, cambiarDia, agregarEjercicio, eliminarEjercicio, completarEjercicio, controlarCronometro, reiniciarCronometro, 
             abrirModificarPR, guardarNuevoPR, iniciarDescansoReloj, cancelarDescanso, 
             formatearTiempo, alternarWakeLock, exportarRutina, importarRutina, leerEjercicio, leerRutinaCompleta,
             instalarApp 

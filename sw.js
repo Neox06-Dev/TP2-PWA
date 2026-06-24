@@ -1,5 +1,5 @@
 // Nombre del caché para la aplicación
-const CACHE_NAME = 'fittrack-cache-v2';
+const CACHE_NAME = 'fittrack-cache-v3';
 
 // Recursos esenciales para el funcionamiento offline de la aplicación
 const RECURSOS_PRECACHE = [
@@ -14,8 +14,14 @@ const RECURSOS_PRECACHE = [
     './manifest.json',
     './icons/favicon-192x192.png',
     './icons/favicon-512x512.png',
+
+    './img/foto1.jpg',
+    './img/foto2.jpg',
+    './img/foto3.jpg',
+
     // CDNs externos
     'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
     'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css',
     'https://unpkg.com/vue@3/dist/vue.global.js',
     'https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js'
