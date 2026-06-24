@@ -18,6 +18,8 @@ body {
     -webkit-font-smoothing: antialiased;
 }
 
+/* Pantalla de Bienvenida a FitTrack */
+
 .welcome-screen {
     background-color: #0a0a0a;
     z-index: 9999;
