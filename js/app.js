@@ -99,9 +99,11 @@ createApp({
                 cronometro: 0,
                 cronoCorriendo: false
             };
-
+    
             ejercicios.value.push(nuevo);
             GymStorage.guardarEjercicios(ejercicios.value);
+            
+            GymSync.encolarEjercicio(nuevo);
             
             GymAPI.dictarEjercicio(nuevo.nombre, nuevo.tipo, nuevo.series, nuevo.reps, nuevo.peso, nuevo.duracionObjetivo);
             nuevoEj.value = { nombre: '', tipo: nuevoEj.value.tipo, series: null, reps: null, peso: null, duracionObjetivo: null };
@@ -304,6 +306,7 @@ createApp({
         // --- Ciclo de Vida ---
         onMounted(() => {
             cargarDatos();
+            GymSync.init();
             window.addEventListener('online', () => isOffline.value = false);
             window.addEventListener('offline', () => isOffline.value = true);
             

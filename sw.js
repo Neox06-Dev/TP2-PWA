@@ -1,5 +1,5 @@
 // Nombre del caché para la aplicación
-const CACHE_NAME = 'fittrack-cache-v1';
+const CACHE_NAME = 'fittrack-cache-v2';
 
 // Recursos esenciales para el funcionamiento offline de la aplicación
 const RECURSOS_PRECACHE = [
@@ -10,6 +10,7 @@ const RECURSOS_PRECACHE = [
     './js/storage.js',
     './js/app.js',
     './js/api.js',
+    './js/sync.js',
     './manifest.json',
     './icons/favicon-192x192.png',
     './icons/favicon-512x512.png',
